@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>雲端編排，地端算力</title>
+
+<!-- Fonts: Manrope for latin/mono chrome, Noto Sans TC for all Chinese copy -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+<style>
+/* ===========================================
+   CSS CUSTOM PROPERTIES (THEME) — Electric Studio
+   =========================================== */
+:root{
+  --bg-dark:#0a0a0a;
+  --bg-white:#ffffff;
+  --accent-blue:#4361ee;
+  --accent-blue-dim:#2d3fae;
+  --text-dark:#0a0a0a;
+  --text-light:#ffffff;
+  --text-muted:#6b6b6b;
+  --text-muted-light:rgba(255,255,255,0.68);
+  --line-soft:rgba(10,10,10,0.12);
+  --line-soft-light:rgba(255,255,255,0.18);
+
+  --font-display:'Manrope', sans-serif;
+  --font-cjk:'Noto Sans TC', sans-serif;
+
+  --slide-pad-x:100px;
+  --ease-out-expo:cubic-bezier(0.16,1,0.3,1);
+  --dur:0.6s;
+}
+*{ margin:0; padding:0; box-sizing:border-box; }
+body{ font-family:var(--font-cjk); }
+
+/* ===========================================
+   FIXED 16:9 STAGE: MANDATORY BASE STYLES (viewport-base.css, verbatim)
+   =========================================== */
+html, body { width:100%; height:100%; margin:0; overflow:hidden; background: var(--stage-bg, #000); }
+.deck-viewport { position:fixed; inset:0; overflow:hidden; background: var(--stage-bg,#000); }
+.deck-stage { position:absolute; left:0; top:0; width:1920px; height:1080px; overflow:hidden; transform-origin:0 0; background: var(--slide-bg,#fff); }
+.slide { position:absolute; inset:0; width:1920px; height:1080px; overflow:hidden; display:block; visibility:hidden; opacity:0; pointer-events:none; background: var(--slide-bg,#fff); }
+.slide.active, .slide.visible { visibility:visible; opacity:1; pointer-events:auto; z-index:1; }
+img, video, canvas, svg { max-width:100%; max-height:100%; }
+.deck-controls { position:fixed; left:50%; bottom:22px; transform:translateX(-50%); z-index:1000; }
+@media print {
+  html,body{width:1920px;height:auto;overflow:visible;background:#fff;}
+  .deck-viewport{position:static;overflow:visible;background:#fff;}
+  .deck-stage{position:static;width:auto;height:auto;transform:none!important;background:none;}
+  .slide{position:relative;display:block!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;width:1920px;height:1080px;break-after:page;page-break-after:always;}
+  .slide:last-child{break-after:auto;page-break-after:auto;}
+  .deck-controls{display:none!important;}
+}
+@media (prefers-reduced-motion: reduce) {
+  *,*::before,*::after{ animation-duration:0.01ms!important; transition-duration:0.2s!important; }
+}
+
+/* ===========================================
+   REVEAL ANIMATIONS — staggered fade+rise on .slide.visible
+   =========================================== */
+.reveal{ opacity:0; transform:translateY(28px); transition:opacity var(--dur) var(--ease-out-expo), transform var(--dur) var(--ease-out-expo); }
+.slide.visible .reveal{ opacity:1; transform:translateY(0); }
+.slide.visible .reveal:nth-child(1){ transition-delay:.05s; }
+.slide.visible .reveal:nth-child(2){ transition-delay:.15s; }
+.slide.visible .reveal:nth-child(3){ transition-delay:.25s; }
+.slide.visible .reveal:nth-child(4){ transition-delay:.35s; }
+.slide.visible .reveal:nth-child(5){ transition-delay:.45s; }
+.slide.visible .reveal:nth-child(6){ transition-delay:.55s; }
+
+/* ===========================================
+   SHARED CHROME — brand mark + page counter on every slide
+   =========================================== */
+.chrome-brand{ position:absolute; top:56px; left:var(--slide-pad-x); font-family:var(--font-display); font-weight:800; font-size:18px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-dark); z-index:5; }
+.chrome-brand span{ color:var(--accent-blue); }
+.slide.on-dark .chrome-brand, .slide.on-blue .chrome-brand{ color:var(--text-light); }
+.slide.on-dark .chrome-brand span, .slide.on-blue .chrome-brand span{ color:#8fa2ff; }
+.chrome-page{ position:absolute; top:56px; right:var(--slide-pad-x); font-family:var(--font-display); font-weight:600; font-size:16px; letter-spacing:0.08em; color:var(--text-muted); z-index:5; }
+.slide.on-dark .chrome-page, .slide.on-blue .chrome-page{ color:var(--text-muted-light); }
+
+/* ===========================================
+   TYPE SYSTEM
+   =========================================== */
+.kicker{ font-family:var(--font-display); font-weight:700; font-size:22px; letter-spacing:0.16em; text-transform:uppercase; color:var(--accent-blue); }
+.slide.on-blue .kicker, .slide.on-dark .kicker{ color:#9db0ff; }
+h2.title{ font-family:var(--font-cjk); font-weight:900; font-size:64px; line-height:1.3; color:var(--text-dark); margin-top:20px; }
+.slide.on-blue h2.title, .slide.on-dark h2.title{ color:var(--text-light); }
+p.lead{ font-family:var(--font-cjk); font-weight:400; font-size:26px; line-height:1.75; color:#333; }
+.slide.on-blue p.lead, .slide.on-dark p.lead{ color:var(--text-muted-light); }
+
+/* ===========================================
+   LAYOUT WRAPPERS
+   =========================================== */
+.content-area{ position:absolute; top:180px; left:var(--slide-pad-x); right:var(--slide-pad-x); bottom:110px; }
+.footer-line{ position:absolute; bottom:64px; left:var(--slide-pad-x); right:var(--slide-pad-x); height:1px; background:var(--line-soft); }
+.slide.on-blue .footer-line, .slide.on-dark .footer-line{ background:var(--line-soft-light); }
+.footer-cap{ position:absolute; bottom:36px; left:var(--slide-pad-x); font-family:var(--font-display); font-weight:500; font-size:15px; letter-spacing:0.05em; color:var(--text-muted); }
+.slide.on-blue .footer-cap, .slide.on-dark .footer-cap{ color:var(--text-muted-light); }
+
+/* ===========================================
+   SLIDE 1 — TITLE (split panel signature move)
+   =========================================== */
+.title-slide{ background:var(--bg-white); }
+.title-panel-top{ position:absolute; top:0; left:0; width:1920px; height:620px; background:var(--bg-white); }
+.title-panel-bottom{ position:absolute; bottom:0; left:0; width:1920px; height:460px; background:var(--accent-blue); }
+.title-kicker{ position:absolute; top:210px; left:var(--slide-pad-x); }
+.title-hero{ position:absolute; top:270px; left:var(--slide-pad-x); width:1500px; font-family:var(--font-cjk); font-weight:900; font-size:108px; line-height:1.15; color:var(--text-dark); }
+.title-accent-bar{ position:absolute; top:620px; left:var(--slide-pad-x); width:120px; height:6px; background:var(--text-dark); }
+.title-sub{ position:absolute; top:680px; left:var(--slide-pad-x); width:1100px; font-family:var(--font-cjk); font-weight:400; font-size:30px; line-height:1.6; color:var(--text-light); }
+.title-footer{ position:absolute; bottom:64px; left:var(--slide-pad-x); font-family:var(--font-display); font-weight:500; font-size:18px; color:rgba(255,255,255,0.75); letter-spacing:0.05em; }
+.title-footer strong{ color:#fff; font-weight:800; }
+
+/* ===========================================
+   AGENDA (numbered list)
+   =========================================== */
+.agenda-list{ display:flex; flex-direction:column; gap:12px; margin-top:28px; width:1500px; }
+.agenda-item{ display:flex; align-items:baseline; gap:32px; padding-bottom:12px; border-bottom:1px solid var(--line-soft); }
+.agenda-num{ font-family:var(--font-display); font-weight:800; font-size:26px; color:var(--accent-blue); width:64px; flex-shrink:0; }
+.agenda-text{ font-family:var(--font-cjk); font-weight:700; font-size:26px; color:var(--text-dark); }
+.agenda-text small{ display:block; font-family:var(--font-cjk); font-weight:400; font-size:16px; color:var(--text-muted); margin-top:4px; }
+
+/* ===========================================
+   TWO COLUMN COMPARISON
+   =========================================== */
+.two-col{ display:flex; gap:48px; margin-top:44px; }
+.col-card{ flex:1; background:#f4f5fb; border-radius:4px; padding:44px 40px; border-left:6px solid var(--accent-blue); }
+.col-card.negative{ border-left-color:#c9c9c9; background:#f7f7f7; }
+.col-card h3{ font-family:var(--font-cjk); font-weight:800; font-size:28px; color:var(--text-dark); margin-bottom:22px; }
+.col-card ul{ list-style:none; }
+.col-card li{ font-family:var(--font-cjk); font-weight:400; font-size:22px; line-height:1.7; color:#333; padding-left:26px; position:relative; margin-bottom:14px; }
+.col-card li::before{ content:"—"; position:absolute; left:0; color:var(--accent-blue); }
+.col-card.negative li::before{ color:#999; }
+.punchline{ margin-top:38px; font-family:var(--font-cjk); font-weight:700; font-size:26px; color:var(--text-dark); }
+.punchline strong{ color:var(--accent-blue); }
+
+/* ===========================================
+   ARCHITECTURE LAYERS (on-blue statement slide)
+   =========================================== */
+.layer-stack{ display:flex; flex-direction:column; gap:12px; margin-top:28px; }
+.layer-row{ display:flex; align-items:center; gap:36px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.22); border-radius:6px; padding:20px 36px; }
+.layer-tag{ font-family:var(--font-display); font-weight:800; font-size:18px; color:#fff; background:rgba(255,255,255,0.16); padding:8px 18px; border-radius:4px; width:180px; text-align:center; flex-shrink:0; }
+.layer-body h4{ font-family:var(--font-cjk); font-weight:700; font-size:23px; color:#fff; margin-bottom:3px; }
+.layer-body p{ font-family:var(--font-cjk); font-weight:400; font-size:16px; color:var(--text-muted-light); }
+.layer-connector{ text-align:center; font-family:var(--font-display); font-weight:800; font-size:13px; letter-spacing:0.2em; color:#9db0ff; margin:0; }
+
+.section-tag{ font-family:var(--font-display); font-weight:800; font-size:14px; letter-spacing:0.14em; color:#9db0ff; text-transform:uppercase; display:block; margin-top:20px; }
+.flow-compare{ display:flex; gap:24px; margin-top:12px; }
+.flow-col{ flex:1; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.22); border-radius:6px; padding:18px 24px; }
+.flow-col h5{ font-family:var(--font-display); font-weight:800; font-size:15px; letter-spacing:0.02em; color:#fff; margin-bottom:9px; }
+.flow-col.cloud h5{ color:#ffd166; }
+.flow-col.local h5{ color:#7be0a8; }
+.flow-col ul{ list-style:none; }
+.flow-col li{ font-family:var(--font-cjk); font-size:15px; line-height:1.5; color:var(--text-muted-light); padding-left:18px; position:relative; margin-bottom:6px; }
+.flow-col li::before{ content:"—"; position:absolute; left:0; }
+.flow-col.cloud li::before{ color:#ffd166; }
+.flow-col.local li::before{ color:#7be0a8; }
+.flow-col li:last-child{ margin-bottom:0; }
+.flow-col li em{ font-style:normal; color:#fff; font-weight:600; }
+
+/* ===========================================
+   ROLE CARDS (3-up)
+   =========================================== */
+.cards-row{ display:flex; gap:36px; margin-top:44px; }
+.role-card{ flex:1; background:var(--bg-white); border:1px solid var(--line-soft); border-radius:6px; padding:38px 34px; }
+.role-card .num{ font-family:var(--font-display); font-weight:800; font-size:16px; color:var(--accent-blue); letter-spacing:0.1em; }
+.role-card h4{ font-family:var(--font-cjk); font-weight:800; font-size:26px; color:var(--text-dark); margin:14px 0 14px; }
+.role-card p{ font-family:var(--font-cjk); font-weight:400; font-size:19px; line-height:1.7; color:#444; }
+
+/* ===========================================
+   STEP FLOW (5-step horizontal)
+   =========================================== */
+.step-flow{ display:flex; gap:20px; margin-top:56px; }
+.step-box{ flex:1; background:#f4f5fb; border-radius:6px; padding:32px 24px; position:relative; }
+.step-box .step-num{ font-family:var(--font-display); font-weight:900; font-size:44px; color:var(--accent-blue); opacity:0.85; }
+.step-box code{ display:block; font-family:'Courier New',monospace; font-weight:700; font-size:18px; color:var(--text-dark); margin:14px 0 10px; word-break:break-word; }
+.step-box p{ font-family:var(--font-cjk); font-weight:400; font-size:16px; line-height:1.6; color:#444; }
+.step-arrow{ align-self:center; font-family:var(--font-display); font-weight:800; font-size:26px; color:#c6c6c6; }
+
+/* ===========================================
+   DATA TABLE
+   =========================================== */
+table.deck-table{ width:100%; border-collapse:collapse; margin-top:36px; }
+table.deck-table th{ text-align:left; font-family:var(--font-display); font-weight:800; font-size:15px; letter-spacing:0.08em; text-transform:uppercase; color:#fff; background:var(--accent-blue); padding:16px 22px; }
+table.deck-table td{ font-family:var(--font-cjk); font-size:19px; line-height:1.55; color:#222; padding:18px 22px; border-bottom:1px solid var(--line-soft); vertical-align:top; }
+table.deck-table tr:nth-child(even) td{ background:#f7f8fc; }
+table.deck-table td.emph{ font-weight:700; color:var(--text-dark); }
+
+/* ===========================================
+   BULLET BLOCKS
+   =========================================== */
+.bullet-grid{ display:flex; flex-direction:column; gap:20px; margin-top:40px; }
+.bullet-block{ background:#f4f5fb; border-radius:6px; padding:26px 32px; border-left:5px solid var(--accent-blue); }
+.bullet-block h5{ font-family:var(--font-cjk); font-weight:800; font-size:23px; color:var(--text-dark); margin-bottom:8px; }
+.bullet-block p{ font-family:var(--font-cjk); font-weight:400; font-size:19px; line-height:1.65; color:#333; }
+.slide.on-dark .bullet-block{ background:rgba(255,255,255,0.06); border-left-color:#9db0ff; }
+.slide.on-dark .bullet-block h5{ color:#fff; }
+.slide.on-dark .bullet-block p{ color:var(--text-muted-light); }
+
+/* ===========================================
+   IMAGE TRIPTYCH
+   =========================================== */
+.triptych{ display:flex; gap:34px; margin-top:32px; }
+.tri-card{ flex:1; }
+.tri-frame{ width:100%; height:440px; border-radius:6px; overflow:hidden; background:#111; border:1px solid var(--line-soft); }
+.tri-frame img{ width:100%; height:100%; object-fit:cover; object-position:center top; display:block; }
+.tri-cap{ margin-top:12px; }
+.tri-cap .tag{ font-family:var(--font-display); font-weight:800; font-size:14px; letter-spacing:0.1em; color:var(--accent-blue); text-transform:uppercase; }
+.tri-cap h5{ font-family:var(--font-cjk); font-weight:700; font-size:22px; color:var(--text-dark); margin:6px 0 6px; }
+.tri-cap p{ font-family:var(--font-cjk); font-weight:400; font-size:16px; line-height:1.55; color:#555; }
+
+/* ===========================================
+   VIDEO FEATURE (split: text left, video right)
+   =========================================== */
+.video-split{ display:flex; gap:56px; margin-top:32px; align-items:flex-start; }
+.video-text{ flex:1; }
+.video-frame{ flex:1; }
+.video-frame video{ width:100%; border-radius:8px; background:#000; box-shadow:0 20px 60px rgba(0,0,0,0.25); }
+.iter-list{ list-style:none; margin-top:22px; }
+.iter-list li{ font-family:var(--font-cjk); font-size:19px; line-height:1.6; color:#333; padding:12px 0 12px 30px; border-bottom:1px solid var(--line-soft); position:relative; }
+.iter-list li::before{ content:"▸"; position:absolute; left:0; color:var(--accent-blue); }
+.iter-list li b{ color:var(--text-dark); }
+
+/* ===========================================
+   CALLOUT BOX
+   =========================================== */
+.callout{ margin-top:22px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.28); border-radius:6px; padding:22px 32px; }
+.callout .tag{ font-family:var(--font-display); font-weight:800; font-size:14px; letter-spacing:0.14em; color:#9db0ff; text-transform:uppercase; }
+.callout p{ font-family:var(--font-cjk); font-weight:700; font-size:23px; color:#fff; margin-top:8px; line-height:1.5; }
+
+/* ===========================================
+   VALUE CARDS (3-up, on white)
+   =========================================== */
+.value-card{ flex:1; background:var(--bg-white); border:1px solid var(--line-soft); border-radius:6px; padding:40px 32px; position:relative; overflow:hidden; }
+.value-card::before{ content:""; position:absolute; top:0; left:0; width:100%; height:6px; background:var(--accent-blue); }
+.value-card h4{ font-family:var(--font-cjk); font-weight:800; font-size:26px; color:var(--text-dark); margin:8px 0 14px; }
+.value-card p{ font-family:var(--font-cjk); font-weight:400; font-size:18px; line-height:1.7; color:#444; }
+
+/* ===========================================
+   LIMITATIONS LIST (on dark)
+   =========================================== */
+.limit-list{ display:flex; flex-direction:column; gap:18px; margin-top:40px; }
+.limit-row{ display:flex; gap:26px; align-items:flex-start; padding:20px 0; border-bottom:1px solid var(--line-soft-light); }
+.limit-icon{ font-family:var(--font-display); font-weight:900; font-size:22px; color:#ff8a65; width:34px; flex-shrink:0; }
+.limit-row p{ font-family:var(--font-cjk); font-size:20px; line-height:1.65; color:var(--text-muted-light); }
+.limit-row p b{ color:#fff; }
+
+/* ===========================================
+   CLOSING SLIDE (on-blue)
+   =========================================== */
+.closing-hero{ font-family:var(--font-cjk); font-weight:900; font-size:80px; line-height:1.3; color:#fff; margin-top:30px; width:1500px; }
+.closing-sub{ margin-top:28px; font-family:var(--font-cjk); font-weight:400; font-size:26px; color:var(--text-muted-light); width:1200px; line-height:1.7; }
+.closing-contact{ margin-top:48px; display:flex; gap:60px; }
+.closing-contact .item{ font-family:var(--font-display); }
+.closing-contact .item .l{ font-size:14px; letter-spacing:0.12em; color:#9db0ff; text-transform:uppercase; font-weight:700; }
+.closing-contact .item .v{ font-size:22px; color:#fff; font-weight:600; margin-top:6px; }
+
+/* ===========================================
+   EDIT MODE (inline editing, off by default)
+   =========================================== */
+.edit-hotzone{ position:fixed; top:0; left:0; width:80px; height:80px; z-index:10000; cursor:pointer; }
+.edit-toggle{ position:fixed; top:16px; left:16px; z-index:10001; width:44px; height:44px; border-radius:50%; border:none; background:var(--accent-blue); color:#fff; font-size:18px; cursor:pointer; opacity:0; pointer-events:none; transition:opacity 0.3s ease; box-shadow:0 4px 16px rgba(0,0,0,0.3); }
+.edit-toggle.show, .edit-toggle.active{ opacity:1; pointer-events:auto; }
+.edit-toggle.active{ background:#ff5722; }
+[contenteditable="true"]{ outline:2px dashed rgba(67,97,238,0.6); outline-offset:4px; cursor:text; }
+.save-toast{ position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--text-dark); color:#fff; font-family:var(--font-display); font-size:14px; padding:12px 22px; border-radius:6px; opacity:0; transition:opacity .3s, transform .3s; z-index:10002; pointer-events:none; }
+.save-toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ===========================================
+   DECK CONTROLS (progress, outside stage)
+   =========================================== */
+.deck-controls{ display:flex; align-items:center; gap:14px; background:rgba(10,10,10,0.75); backdrop-filter:blur(6px); padding:10px 20px; border-radius:30px; }
+.deck-controls button{ background:none; border:none; color:#fff; font-size:18px; cursor:pointer; opacity:0.8; }
+.deck-controls button:hover{ opacity:1; }
+.deck-controls .progress-text{ font-family:var(--font-display); font-size:13px; color:#fff; letter-spacing:0.05em; min-width:60px; text-align:center; }
+</style>
+</head>
+<body>
+<div class="deck-viewport">
+  <main class="deck-stage" id="deckStage">
+
+    <!-- ============================================================
+         SLIDE 01 — TITLE
+         ============================================================ -->
+    <section class="slide title-slide active">
+      <div class="title-panel-top"></div>
+      <div class="title-panel-bottom"></div>
+      <div class="chrome-brand" style="top:56px;">ASRock AI <span>Center</span></div>
+      <div class="chrome-page" style="top:56px;">01 / 10</div>
+      <div class="kicker title-kicker reveal">FDE 專業服務提案</div>
+      <h1 class="title-hero reveal">雲端編排，<br>地端算力。</h1>
+      <div class="title-accent-bar reveal"></div>
+      <p class="title-sub reveal">算力預算自主，技術站在雲端巨人肩膀上，生成模型開源不鎖定。</p>
+      <div class="title-footer reveal">Prepared for <strong>Enterprise AI Infrastructure Review</strong> — 2026 · Powered by Claude Code</div>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 02 — AGENDA
+         ============================================================ -->
+    <section class="slide">
+      <div class="chrome-brand">ASRock AI <span>Center</span></div>
+      <div class="chrome-page">02 / 10</div>
+      <div class="content-area">
+        <div class="kicker reveal">AGENDA</div>
+        <h2 class="title reveal">今天要談的四個重點</h2>
+        <div class="agenda-list reveal">
+          <div class="agenda-item"><div class="agenda-num">01</div><div class="agenda-text">現況<small>企業自建生成式 AI 值得考慮的三個理由</small></div></div>
+          <div class="agenda-item"><div class="agenda-num">02</div><div class="agenda-text">架構<small>雲端編排、地端算力怎麼運作</small></div></div>
+          <div class="agenda-item"><div class="agenda-num">03</div><div class="agenda-text">實戰案例<small>從模板地圖到一支示範影片</small></div></div>
+          <div class="agenda-item"><div class="agenda-num">04</div><div class="agenda-text">三個支柱<small>算力預算、技術繼承、開源自主</small></div></div>
+        </div>
+      </div>
+      <div class="footer-line"></div>
+      <div class="footer-cap">雲端編排，地端算力</div>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 03 — THE PROBLEM
+         ============================================================ -->
+    <section class="slide">
+      <div class="chrome-brand">ASRock AI <span>Center</span></div>
+      <div class="chrome-page">03 / 10</div>
+      <div class="content-area">
+        <div class="kicker reveal">THE PROBLEM</div>
+        <h2 class="title reveal">企業導入生成式 AI 的兩難</h2>
+        <div class="two-col reveal">
+          <div class="col-card negative">
+            <h3>只用公有雲生成 API</h3>
+            <ul>
+              <li>每次生成都是計次計費，用量越大成本越不可控</li>
+              <li>綁定單一供應商的模型與定價，議價空間有限</li>
+              <li>供應商下架或調整模型，工作流程被迫跟著改變</li>
+            </ul>
+          </div>
+          <div class="col-card negative">
+            <h3>只買地端算力，從零自建</h3>
+            <ul>
+              <li>要自己重造一套智慧編排介面，開發與維運成本高</li>
+              <li>跟不上雲端 agent harness 的技術迭代速度</li>
+              <li>上手門檻高，落地速度慢，難以規模化複製</li>
+            </ul>
+          </div>
+        </div>
+        <p class="punchline reveal">企業真正要的是，<strong>算力成本自己說了算，技術又不必從零重造。</strong></p>
+      </div>
+      <div class="footer-line"></div>
+      <div class="footer-cap">雲端編排，地端算力</div>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 04 — ARCHITECTURE (on-blue statement slide)
+         ============================================================ -->
+    <section class="slide on-blue" style="background:var(--accent-blue);">
+      <div class="chrome-brand">ASRock AI <span>Center</span></div>
+      <div class="chrome-page">04 / 10</div>
+      <div class="content-area">
+        <div class="kicker reveal">THE ARCHITECTURE</div>
+        <h2 class="title reveal">雲端編排，地端算力</h2>
+        <div class="layer-stack reveal">
+          <div class="layer-row">
+            <div class="layer-tag">雲端</div>
+            <div class="layer-body"><h4>LLM 推論層 — Anthropic Cloud</h4><p>由雲端供應商持續迭代的 agent 能力，直接為你所用，不必自建</p></div>
+          </div>
+          <div class="layer-connector">↕ MCP 標準協定 ↕</div>
+          <div class="layer-row">
+            <div class="layer-tag">使用者本機</div>
+            <div class="layer-body"><h4>編排互動層 — Claude Code 終端機</h4><p>站在雲端最新的 harness 技術之上，不必重造這一層智慧編排介面</p></div>
+          </div>
+          <div class="layer-connector">↕ MCP 標準協定 ↕</div>
+          <div class="layer-row">
+            <div class="layer-tag">企業內網</div>
+            <div class="layer-body"><h4>算力密集層 — pixelforge Appliance</h4><p>開源模型加自建算力，成本與維運主導權留在自己手上</p></div>
+          </div>
+        </div>
+        <div class="callout reveal">
+          <div class="tag">Key Takeaway</div>
+          <p>三層分工，剛好對應三個核心優勢——雲端層繼承技術迭代、本機層省下重造編排介面的成本、內網算力層掌握預算與開源自主，稍後逐一展開。</p>
+        </div>
+      </div>
+      <div class="footer-line"></div>
+      <div class="footer-cap">雲端編排，地端算力</div>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 05 — TOOLKIT MAP (table)
+         ============================================================ -->
+    <section class="slide">
+      <div class="chrome-brand">ASRock AI <span>Center</span></div>
+      <div class="chrome-page">05 / 10</div>
+      <div class="content-area">
+        <div class="kicker reveal">THE TOOLKIT</div>
+        <h2 class="title reveal">pixelforge，17 個模板，5 大分類</h2>
+        <table class="deck-table reveal">
+          <thead><tr><th>分類</th><th>代表模型</th><th>用途重點</th></tr></thead>
+          <tbody>
+            <tr><td class="emph">圖片生成</td><td>Tongyi Z-Image Turbo · Qwen-Image · SDXL</td><td>從幾秒的快速試稿到高細節、可讀文字的正式輸出</td></tr>
+            <tr><td class="emph">修改圖片</td><td>Qwen-Image-Edit 2509</td><td>單張或多參考圖的指令式編輯，鎖定角色一致性</td></tr>
+            <tr><td class="emph">影片生成</td><td>Wan 2.2 · LTX-2.3 · SkyReels-V2 · MiniMax H3</td><td>5 秒到 31 秒不等，含原生同步音效的多鏡頭敘事</td></tr>
+            <tr><td class="emph">圖片轉影片</td><td>同上模型的 I2V 版本</td><td>讓一張定稿畫面動起來，延續靜態設計資產</td></tr>
+            <tr><td class="emph">音樂生成</td><td>MiniMax Music 3</td><td>結構化歌詞加標籤，生成完整歌曲</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="footer-line"></div>
+      <div class="footer-cap">雲端編排，地端算力</div>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 06 — CASE STUDY: THE BRIEF
+         ============================================================ -->
+    <section class="slide">
+      <div class="chrome-brand">ASRock AI <span>Center</span></div>
+      <div class="chrome-page">06 / 10</div>
+      <div class="content-area">
+        <div class="kicker reveal">CASE STUDY — THE BRIEF</div>
+        <h2 class="title reveal">用一支影片，示範 FDE 的落地能力</h2>
+        <div class="bullet-grid reveal">
+          <div class="bullet-block">
+            <h5>角色，不能用真人照片</h5>
+            <p>需要一個專業形象代言人，但真人照片涉及肖像權爭議。解法：全程用文字描述生成虛構角色，特徵組合不對應任何真實存在的人。</p>
+          </div>
+          <div class="bullet-block">
+            <h5>產品，其實是一項專業服務</h5>
+            <p>ASRock AI Center 的 FDE 服務是「人的專業能力」，不是實體物件。官網 banner 文字與 logo 太多，直接當參考圖容易被模型畫壞，改以「全息部署藍圖」代表服務落地能力。</p>
+          </div>
+          <div class="bullet-block">
+            <h5>場景，從熱鬧展場到極簡舞台</h5>
+            <p>從商展主題演講的熱鬧光柱，改為呼應 Apple 早期發表會的純黑極簡舞台，最終選擇「少即是多」的版本。</p>
+          </div>
+        </div>
+      </div>
+      <div class="footer-line"></div>
+      <div class="footer-cap">雲端編排，地端算力</div>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 07 — CASE STUDY: THE ASSETS (triptych)
+         ============================================================ -->
+    <section class="slide">
+      <div class="chrome-brand">ASRock AI <span>Center</span></div>
+      <div class="chrome-page">07 / 10</div>
+      <div class="content-area">
+        <div class="kicker reveal">CASE STUDY — THE ASSETS</div>
+        <h2 class="title reveal">三個角色，一支影片的骨架</h2>
+        <div class="triptych reveal">
+          <div class="tri-card">
+            <div class="tri-frame"><img src="assets/picture1.png" alt="角色定裝照"></div>
+            <div class="tri-cap"><span class="tag">Picture 1</span><h5>角色定裝照</h5><p>虛構的東亞女性主管形象，黑色西裝、正式白襯衫，全程無真人肖像</p></div>
+          </div>
+          <div class="tri-card">
+            <div class="tri-frame"><img src="assets/picture2.png" alt="FDE 服務概念視覺"></div>
+            <div class="tri-cap"><span class="tag">Picture 2</span><h5>FDE 服務概念視覺</h5><p>浮空全息部署藍圖，用視覺化的落地能力取代不存在的實體產品</p></div>
+          </div>
+          <div class="tri-card">
+            <div class="tri-frame"><img src="assets/picture3.png" alt="極簡發表會舞台"></div>
+            <div class="tri-cap"><span class="tag">Picture 3</span><h5>極簡發表會舞台</h5><p>純黑背景、單一聚光燈，呼應「少即是多」的發表會美學</p></div>
+          </div>
+        </div>
+      </div>
+      <div class="footer-line"></div>
+      <div class="footer-cap">雲端編排，地端算力</div>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 08 — CASE STUDY: THE RESULT (video)
+         ============================================================ -->
+    <section class="slide">
+      <div class="chrome-brand">ASRock AI <span>Center</span></div>
+      <div class="chrome-page">08 / 10</div>
+      <div class="content-area">
+        <div class="kicker reveal">CASE STUDY — THE RESULT</div>
+        <h2 class="title reveal">從平鋪直敘，到懸念與爆發</h2>
+        <div class="video-split reveal">
+          <div class="video-text">
+            <ul class="iter-list">
+              <li><b>第一版</b> — 走進舞台、抬手、藍圖緩慢浮現。平鋪直敘，缺乏張力。</li>
+              <li><b>敘事優化</b> — 參考官方與社群案例，歸納「隨時間變化、聲音推動情緒、固定與變動分開講」三個原則。</li>
+              <li><b>8 秒版</b> — 沉靜懸念到觸碰瞬間爆發，因果觸發製造戲劇張力。</li>
+              <li><b>14 秒版</b> — 懸念、爆發、細看、收尾，一鏡到底完成完整敘事弧線。</li>
+            </ul>
+          </div>
+          <div class="video-frame">
+            <video src="assets/hero-video.mp4" controls muted loop playsinline></video>
+          </div>
+        </div>
+      </div>
+      <div class="footer-line"></div>
+      <div class="footer-cap">雲端編排，地端算力</div>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 09 — WHY THIS MATTERS TO YOU (value cards)
+         ============================================================ -->
+    <section class="slide">
+      <div class="chrome-brand">ASRock AI <span>Center</span></div>
+      <div class="chrome-page">09 / 10</div>
+      <div class="content-area">
+        <div class="kicker reveal">WHY THIS MATTERS TO YOU</div>
+        <h2 class="title reveal">算力預算、技術繼承、開源自主</h2>
+        <div class="cards-row reveal" style="margin-top:44px;">
+          <div class="value-card">
+            <h4>算力預算</h4>
+            <p>用固定的自建算力取代計次計費的雲端生成 API，用量越大，總持有成本越可控，預算規劃更精準。</p>
+          </div>
+          <div class="value-card">
+            <h4>技術繼承</h4>
+            <p>站在 Anthropic 持續迭代的 agent harness 之上，不必自己重造一套智慧編排介面，技術跟得上業界最新進展。</p>
+          </div>
+          <div class="value-card">
+            <h4>開源自主</h4>
+            <p>生成模型全數開源（Qwen、SDXL、Wan、LTX、MiniMax H3 等），pixelforge 與 MCP 整合層可獨立維護，不被單一供應商鎖定。</p>
+          </div>
+        </div>
+      </div>
+      <div class="footer-line"></div>
+      <div class="footer-cap">雲端編排，地端算力</div>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 10 — CLOSING / CTA (on-blue)
+         ============================================================ -->
+    <section class="slide on-blue" style="background:var(--accent-blue);">
+      <div class="chrome-brand">ASRock AI <span>Center</span></div>
+      <div class="chrome-page">10 / 10</div>
+      <div class="content-area">
+        <div class="kicker reveal">NEXT STEPS</div>
+        <h1 class="closing-hero reveal">讓我們安排一次<br>POC 討論。</h1>
+        <p class="closing-sub reveal">帶著您真實的品牌素材與需求，我們可以在一週內產出第一版可視化成果，驗證這套雲端編排、地端算力的架構如何為您的團隊落地。</p>
+        <div class="closing-contact reveal">
+          <div class="item"><div class="l">Contact</div><div class="v">Allen1_Sun@asrock.com.tw</div></div>
+          <div class="item"><div class="l">Team</div><div class="v">ASRock AI Center — FDE</div></div>
+          <div class="item"><div class="l">Deck</div><div class="v" style="font-size:16px; font-weight:500; color:#9db0ff;">Powered by Claude Code</div></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Inline editing affordance -->
+<div class="edit-hotzone" id="editHotzone"></div>
+<button class="edit-toggle" id="editToggle" title="Edit mode (E)">✏️</button>
+<div class="save-toast" id="saveToast">已儲存</div>
+
+<!-- Deck navigation controls (outside the stage) -->
+<div class="deck-controls">
+  <button id="prevBtn" title="Previous (←)">◀</button>
+  <span class="progress-text" id="progressText">1 / 10</span>
+  <button id="nextBtn" title="Next (→)">▶</button>
+</div>
+
+<script>
+/* ===========================================
+   SLIDE PRESENTATION CONTROLLER
+   Handles stage scaling, keyboard/touch/wheel nav, and progress display.
+   =========================================== */
+class SlidePresentation {
+  constructor() {
+    this.slides = document.querySelectorAll('.slide');
+    this.currentSlide = 0;
+    this.stage = document.getElementById('deckStage');
+    this.progressText = document.getElementById('progressText');
+    this.setupStageScale();
+    this.setupKeyboardNav();
+    this.setupTouchNav();
+    this.setupWheelNav();
+    this.setupButtons();
+    this.showSlide(0);
+  }
+
+  setupStageScale() {
+    const scale = () => {
+      const factor = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+      const x = (window.innerWidth - 1920 * factor) / 2;
+      const y = (window.innerHeight - 1080 * factor) / 2;
+      this.stage.style.transform = `translate(${x}px, ${y}px) scale(${factor})`;
+    };
+    scale();
+    window.addEventListener('resize', scale);
+  }
+
+  setupKeyboardNav() {
+    document.addEventListener('keydown', (e) => {
+      if (e.target.getAttribute && e.target.getAttribute('contenteditable') === 'true') return;
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); this.next(); }
+      else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); this.prev(); }
+    });
+  }
+
+  setupTouchNav() {
+    let startX = 0;
+    this.stage.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; }, { passive: true });
+    this.stage.addEventListener('touchend', (e) => {
+      const diff = e.changedTouches[0].clientX - startX;
+      if (Math.abs(diff) > 60) { diff < 0 ? this.next() : this.prev(); }
+    }, { passive: true });
+  }
+
+  setupWheelNav() {
+    let locked = false;
+    window.addEventListener('wheel', (e) => {
+      if (locked) return;
+      if (Math.abs(e.deltaY) < 24) return;
+      locked = true;
+      e.deltaY > 0 ? this.next() : this.prev();
+      setTimeout(() => { locked = false; }, 500);
+    }, { passive: true });
+  }
+
+  setupButtons() {
+    document.getElementById('nextBtn').addEventListener('click', () => this.next());
+    document.getElementById('prevBtn').addEventListener('click', () => this.prev());
+  }
+
+  next() { this.showSlide(this.currentSlide + 1); }
+  prev() { this.showSlide(this.currentSlide - 1); }
+
+  showSlide(index) {
+    this.currentSlide = Math.max(0, Math.min(index, this.slides.length - 1));
+    this.slides.forEach((slide, i) => {
+      slide.classList.toggle('active', i === this.currentSlide);
+      slide.classList.toggle('visible', i === this.currentSlide);
+    });
+    this.progressText.textContent = `${this.currentSlide + 1} / ${this.slides.length}`;
+  }
+}
+
+/* ===========================================
+   INLINE EDITOR
+   Toggles contenteditable on text nodes, autosaves to localStorage.
+   =========================================== */
+class InlineEditor {
+  constructor(storageKey) {
+    this.storageKey = storageKey;
+    this.isActive = false;
+    this.editableSelector = 'h1, h2, h3, h4, h5, p, li, span.v, code, .agenda-text, .footer-cap';
+    this.restore();
+    this.bindInputListeners();
+  }
+
+  toggleEditMode() {
+    this.isActive = !this.isActive;
+    document.getElementById('editToggle').classList.toggle('active', this.isActive);
+    document.querySelectorAll(this.editableSelector).forEach(el => {
+      el.setAttribute('contenteditable', this.isActive ? 'true' : 'false');
+    });
+  }
+
+  bindInputListeners() {
+    document.body.addEventListener('input', (e) => {
+      if (e.target.getAttribute && e.target.getAttribute('contenteditable') === 'true') {
+        this.save();
+      }
+    });
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        this.save();
+        this.toast();
+      }
+    });
+  }
+
+  save() {
+    const data = {};
+    document.querySelectorAll('.slide').forEach((slide, si) => {
+      slide.querySelectorAll(this.editableSelector).forEach((el, ei) => {
+        data[`${si}-${ei}`] = el.innerHTML;
+      });
+    });
+    try { localStorage.setItem(this.storageKey, JSON.stringify(data)); } catch (err) {}
+  }
+
+  restore() {
+    let data;
+    try { data = JSON.parse(localStorage.getItem(this.storageKey) || '{}'); } catch (err) { data = {}; }
+    document.querySelectorAll('.slide').forEach((slide, si) => {
+      slide.querySelectorAll(this.editableSelector).forEach((el, ei) => {
+        const saved = data[`${si}-${ei}`];
+        if (saved !== undefined) el.innerHTML = saved;
+      });
+    });
+  }
+
+  toast() {
+    const t = document.getElementById('saveToast');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 1400);
+  }
+}
+
+const deck = new SlidePresentation();
+const editor = new InlineEditor('pitch-deck-edits-compact-v1');
+
+/* Edit toggle: click + hotzone hover (400ms grace) + E key */
+const hotzone = document.getElementById('editHotzone');
+const editToggle = document.getElementById('editToggle');
+let hideTimeout = null;
+
+editToggle.addEventListener('click', () => editor.toggleEditMode());
+hotzone.addEventListener('click', () => editor.toggleEditMode());
+hotzone.addEventListener('mouseenter', () => { clearTimeout(hideTimeout); editToggle.classList.add('show'); });
+hotzone.addEventListener('mouseleave', () => { hideTimeout = setTimeout(() => { if (!editor.isActive) editToggle.classList.remove('show'); }, 400); });
+editToggle.addEventListener('mouseenter', () => clearTimeout(hideTimeout));
+editToggle.addEventListener('mouseleave', () => { hideTimeout = setTimeout(() => { if (!editor.isActive) editToggle.classList.remove('show'); }, 400); });
+document.addEventListener('keydown', (e) => {
+  if ((e.key === 'e' || e.key === 'E') && !(e.target.getAttribute && e.target.getAttribute('contenteditable') === 'true')) {
+    editor.toggleEditMode();
+  }
+});
+</script>
+</body>
+</html>
