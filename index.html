@@ -53,6 +53,7 @@ img, video, canvas, svg { max-width:100%; max-height:100%; }
   .slide{position:relative;display:block!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;width:1920px;height:1080px;break-after:page;page-break-after:always;}
   .slide:last-child{break-after:auto;page-break-after:auto;}
   .deck-controls{display:none!important;}
+  .reveal{opacity:1!important;transform:none!important;}
 }
 @media (prefers-reduced-motion: reduce) {
   *,*::before,*::after{ animation-duration:0.01ms!important; transition-duration:0.2s!important; }
@@ -209,6 +210,17 @@ table.deck-table td.emph{ font-weight:700; color:var(--text-dark); }
 .tri-cap .tag{ font-family:var(--font-display); font-weight:800; font-size:14px; letter-spacing:0.1em; color:var(--accent-blue); text-transform:uppercase; }
 .tri-cap h5{ font-family:var(--font-cjk); font-weight:700; font-size:22px; color:var(--text-dark); margin:6px 0 6px; }
 .tri-cap p{ font-family:var(--font-cjk); font-weight:400; font-size:16px; line-height:1.55; color:#555; }
+.triptych.video-row .tri-frame{ height:310px; }
+.tri-frame video{ width:100%; height:100%; object-fit:cover; display:block; background:#000; }
+
+/* ===========================================
+   PROOF STRIP (numbers under value cards)
+   =========================================== */
+.proof-row{ display:flex; gap:36px; margin-top:40px; padding-top:32px; border-top:1px solid var(--line-soft); }
+.proof-item{ flex:1; }
+.proof-item .n{ font-family:var(--font-display); font-weight:800; font-size:44px; color:var(--accent-blue); line-height:1; }
+.proof-item .n small{ font-family:var(--font-cjk); font-size:20px; font-weight:700; margin-left:6px; }
+.proof-item p{ font-family:var(--font-cjk); font-size:17px; line-height:1.6; color:#444; margin-top:10px; }
 
 /* ===========================================
    VIDEO FEATURE (split: text left, video right)
@@ -287,7 +299,7 @@ table.deck-table td.emph{ font-weight:700; color:var(--text-dark); }
       <div class="title-panel-top"></div>
       <div class="title-panel-bottom"></div>
       <div class="chrome-brand" style="top:56px;">ASRock AI <span>Center</span></div>
-      <div class="chrome-page" style="top:56px;">01 / 10</div>
+      <div class="chrome-page" style="top:56px;">01 / 12</div>
       <div class="kicker title-kicker reveal">FDE 專業服務提案</div>
       <h1 class="title-hero reveal">雲端編排，<br>地端算力。</h1>
       <div class="title-accent-bar reveal"></div>
@@ -300,15 +312,15 @@ table.deck-table td.emph{ font-weight:700; color:var(--text-dark); }
          ============================================================ -->
     <section class="slide">
       <div class="chrome-brand">ASRock AI <span>Center</span></div>
-      <div class="chrome-page">02 / 10</div>
+      <div class="chrome-page">02 / 12</div>
       <div class="content-area">
         <div class="kicker reveal">AGENDA</div>
         <h2 class="title reveal">今天要談的四個重點</h2>
         <div class="agenda-list reveal">
           <div class="agenda-item"><div class="agenda-num">01</div><div class="agenda-text">現況<small>企業自建生成式 AI 值得考慮的三個理由</small></div></div>
           <div class="agenda-item"><div class="agenda-num">02</div><div class="agenda-text">架構<small>雲端編排、地端算力怎麼運作</small></div></div>
-          <div class="agenda-item"><div class="agenda-num">03</div><div class="agenda-text">實戰案例<small>從模板地圖到一支示範影片</small></div></div>
-          <div class="agenda-item"><div class="agenda-num">04</div><div class="agenda-text">三個支柱<small>算力預算、技術繼承、開源自主</small></div></div>
+          <div class="agenda-item"><div class="agenda-num">03</div><div class="agenda-text">實戰案例<small>從模板地圖、一支示範影片，到三種製作路徑</small></div></div>
+          <div class="agenda-item"><div class="agenda-num">04</div><div class="agenda-text">三個支柱與邊界<small>算力預算、技術繼承、開源自主，以及目前做不到的事</small></div></div>
         </div>
       </div>
       <div class="footer-line"></div>
@@ -320,7 +332,7 @@ table.deck-table td.emph{ font-weight:700; color:var(--text-dark); }
          ============================================================ -->
     <section class="slide">
       <div class="chrome-brand">ASRock AI <span>Center</span></div>
-      <div class="chrome-page">03 / 10</div>
+      <div class="chrome-page">03 / 12</div>
       <div class="content-area">
         <div class="kicker reveal">THE PROBLEM</div>
         <h2 class="title reveal">企業導入生成式 AI 的兩難</h2>
@@ -353,7 +365,7 @@ table.deck-table td.emph{ font-weight:700; color:var(--text-dark); }
          ============================================================ -->
     <section class="slide on-blue" style="background:var(--accent-blue);">
       <div class="chrome-brand">ASRock AI <span>Center</span></div>
-      <div class="chrome-page">04 / 10</div>
+      <div class="chrome-page">04 / 12</div>
       <div class="content-area">
         <div class="kicker reveal">THE ARCHITECTURE</div>
         <h2 class="title reveal">雲端編排，地端算力</h2>
@@ -365,7 +377,7 @@ table.deck-table td.emph{ font-weight:700; color:var(--text-dark); }
           <div class="layer-connector">↕ MCP 標準協定 ↕</div>
           <div class="layer-row">
             <div class="layer-tag">使用者本機</div>
-            <div class="layer-body"><h4>編排互動層 — Claude Code 終端機</h4><p>站在雲端最新的 harness 技術之上，不必重造這一層智慧編排介面</p></div>
+            <div class="layer-body"><h4>編排與後製層 — Claude Code 終端機</h4><p>站在雲端最新的 harness 技術之上編排流程，並在本機用程式完成剪接、調色、字卡與配樂</p></div>
           </div>
           <div class="layer-connector">↕ MCP 標準協定 ↕</div>
           <div class="layer-row">
@@ -387,7 +399,7 @@ table.deck-table td.emph{ font-weight:700; color:var(--text-dark); }
          ============================================================ -->
     <section class="slide">
       <div class="chrome-brand">ASRock AI <span>Center</span></div>
-      <div class="chrome-page">05 / 10</div>
+      <div class="chrome-page">05 / 12</div>
       <div class="content-area">
         <div class="kicker reveal">THE TOOLKIT</div>
         <h2 class="title reveal">pixelforge，17 個模板，5 大分類</h2>
@@ -411,7 +423,7 @@ table.deck-table td.emph{ font-weight:700; color:var(--text-dark); }
          ============================================================ -->
     <section class="slide">
       <div class="chrome-brand">ASRock AI <span>Center</span></div>
-      <div class="chrome-page">06 / 10</div>
+      <div class="chrome-page">06 / 12</div>
       <div class="content-area">
         <div class="kicker reveal">CASE STUDY — THE BRIEF</div>
         <h2 class="title reveal">用一支影片，示範 FDE 的落地能力</h2>
@@ -439,7 +451,7 @@ table.deck-table td.emph{ font-weight:700; color:var(--text-dark); }
          ============================================================ -->
     <section class="slide">
       <div class="chrome-brand">ASRock AI <span>Center</span></div>
-      <div class="chrome-page">07 / 10</div>
+      <div class="chrome-page">07 / 12</div>
       <div class="content-area">
         <div class="kicker reveal">CASE STUDY — THE ASSETS</div>
         <h2 class="title reveal">三個角色，一支影片的骨架</h2>
@@ -467,7 +479,7 @@ table.deck-table td.emph{ font-weight:700; color:var(--text-dark); }
          ============================================================ -->
     <section class="slide">
       <div class="chrome-brand">ASRock AI <span>Center</span></div>
-      <div class="chrome-page">08 / 10</div>
+      <div class="chrome-page">08 / 12</div>
       <div class="content-area">
         <div class="kicker reveal">CASE STUDY — THE RESULT</div>
         <h2 class="title reveal">從平鋪直敘，到懸念與爆發</h2>
@@ -490,11 +502,40 @@ table.deck-table td.emph{ font-weight:700; color:var(--text-dark); }
     </section>
 
     <!-- ============================================================
-         SLIDE 09 — WHY THIS MATTERS TO YOU (value cards)
+         SLIDE 09 — CASE STUDY: THREE PATHS (video triptych)
          ============================================================ -->
     <section class="slide">
       <div class="chrome-brand">ASRock AI <span>Center</span></div>
-      <div class="chrome-page">09 / 10</div>
+      <div class="chrome-page">09 / 12</div>
+      <div class="content-area">
+        <div class="kicker reveal">CASE STUDY — THREE PATHS</div>
+        <h2 class="title reveal">像素交給模型，品牌交給程式</h2>
+        <div class="triptych video-row reveal">
+          <div class="tri-card">
+            <div class="tri-frame"><video src="assets/hero-video.mp4" muted loop playsinline controls></video></div>
+            <div class="tri-cap"><span class="tag">Path 1 · 純生成</span><h5>文字提示詞直出影片</h5><p>pixelforge 生成角色、舞台與鏡頭。擅長真實人物與光影，但文字與 logo 容易畫壞。</p></div>
+          </div>
+          <div class="tri-card">
+            <div class="tri-frame"><video src="assets/path-code.mp4" muted loop playsinline controls></video></div>
+            <div class="tri-cap"><span class="tag">Path 2 · 純程式</span><h5>X870E Taichi 30 秒廣告</h5><p>主機板、字卡與音效全由 Python 繪製和合成。產品細節與文字精準，可完整重現。</p></div>
+          </div>
+          <div class="tri-card">
+            <div class="tri-frame"><video src="assets/path-hybrid.mp4" muted loop playsinline controls></video></div>
+            <div class="tri-cap"><span class="tag">Path 3 · 混合</span><h5>生成鏡頭，程式收尾</h5><p>pixelforge 生成 5 段鏡頭，Claude Code 在本機疊上監控介面、追蹤地圖、字卡並合成配樂。</p></div>
+          </div>
+        </div>
+        <p class="punchline reveal">依素材性質選路徑，<strong>真實感交給生成模型，品牌元素交給程式碼。</strong></p>
+      </div>
+      <div class="footer-line"></div>
+      <div class="footer-cap">雲端編排，地端算力</div>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 10 — WHY THIS MATTERS TO YOU (value cards + proof strip)
+         ============================================================ -->
+    <section class="slide">
+      <div class="chrome-brand">ASRock AI <span>Center</span></div>
+      <div class="chrome-page">10 / 12</div>
       <div class="content-area">
         <div class="kicker reveal">WHY THIS MATTERS TO YOU</div>
         <h2 class="title reveal">算力預算、技術繼承、開源自主</h2>
@@ -512,17 +553,44 @@ table.deck-table td.emph{ font-weight:700; color:var(--text-dark); }
             <p>生成模型全數開源（Qwen、SDXL、Wan、LTX、MiniMax H3 等），pixelforge 與 MCP 整合層可獨立維護，不被單一供應商鎖定。</p>
           </div>
         </div>
+        <div class="proof-row reveal">
+          <div class="proof-item"><div class="n">2<small>分鐘</small></div><p>30 秒 1080p 程式算繪廣告，全片輸出時間</p></div>
+          <div class="proof-item"><div class="n">25<small>分鐘</small></div><p>混合路徑，從第一張角色圖到 30 秒含配樂的成片</p></div>
+          <div class="proof-item"><div class="n">1<small>行指令</small></div><p>程式碼就是交付物，重跑即可重現，換參數就能換產品</p></div>
+          <div class="proof-item"><div class="n">10<small>張關鍵影格</small></div><p>全片算繪前先自我檢查，再交由人工審片</p></div>
+        </div>
       </div>
       <div class="footer-line"></div>
       <div class="footer-cap">雲端編排，地端算力</div>
     </section>
 
     <!-- ============================================================
-         SLIDE 10 — CLOSING / CTA (on-blue)
+         SLIDE 11 — LIMITATIONS (on-dark)
+         ============================================================ -->
+    <section class="slide on-dark" style="background:var(--bg-dark);">
+      <div class="chrome-brand">ASRock AI <span>Center</span></div>
+      <div class="chrome-page">11 / 12</div>
+      <div class="content-area">
+        <div class="kicker reveal">LIMITATIONS</div>
+        <h2 class="title reveal">目前做不到的事，先說清楚</h2>
+        <div class="limit-list reveal">
+          <div class="limit-row"><div class="limit-icon">01</div><p><b>生成結果有隨機性。</b>同一段提示詞每次產出不同，需要多抽幾版再挑選，時程要預留迭代空間。</p></div>
+          <div class="limit-row"><div class="limit-icon">02</div><p><b>單段生成影片有長度上限。</b>長片要靠多段剪接，跨鏡頭的角色一致性依賴定裝照參考。</p></div>
+          <div class="limit-row"><div class="limit-icon">03</div><p><b>兩條路徑各有盲區。</b>生成模型不擅長文字與 logo，程式算繪不擅長真實人物與自然光影。</p></div>
+          <div class="limit-row"><div class="limit-icon">04</div><p><b>成片仍需人工把關。</b>agent 的影格檢查只是初篩，品牌、肖像與商標審核仍由人負責。</p></div>
+          <div class="limit-row"><div class="limit-icon">05</div><p><b>地端算力有容量上限。</b>前期需要硬體投資，尖峰需求要排程或分批生成。</p></div>
+        </div>
+      </div>
+      <div class="footer-line"></div>
+      <div class="footer-cap">雲端編排，地端算力</div>
+    </section>
+
+    <!-- ============================================================
+         SLIDE 12 — CLOSING / CTA (on-blue)
          ============================================================ -->
     <section class="slide on-blue" style="background:var(--accent-blue);">
       <div class="chrome-brand">ASRock AI <span>Center</span></div>
-      <div class="chrome-page">10 / 10</div>
+      <div class="chrome-page">12 / 12</div>
       <div class="content-area">
         <div class="kicker reveal">NEXT STEPS</div>
         <h1 class="closing-hero reveal">讓我們安排一次<br>POC 討論。</h1>
@@ -546,7 +614,7 @@ table.deck-table td.emph{ font-weight:700; color:var(--text-dark); }
 <!-- Deck navigation controls (outside the stage) -->
 <div class="deck-controls">
   <button id="prevBtn" title="Previous (←)">◀</button>
-  <span class="progress-text" id="progressText">1 / 10</span>
+  <span class="progress-text" id="progressText">1 / 12</span>
   <button id="nextBtn" title="Next (→)">▶</button>
 </div>
 
@@ -691,7 +759,7 @@ class InlineEditor {
 }
 
 const deck = new SlidePresentation();
-const editor = new InlineEditor('pitch-deck-edits-compact-v1');
+const editor = new InlineEditor('pitch-deck-edits-compact-v2');
 
 /* Edit toggle: click + hotzone hover (400ms grace) + E key */
 const hotzone = document.getElementById('editHotzone');
