@@ -212,6 +212,8 @@ table.deck-table td.emph{ font-weight:700; color:var(--text-dark); }
 .tri-cap p{ font-family:var(--font-cjk); font-weight:400; font-size:16px; line-height:1.55; color:#555; }
 .triptych.video-row .tri-frame{ height:310px; }
 .tri-frame video{ width:100%; height:100%; object-fit:cover; display:block; background:#000; }
+.tri-still{ position:relative; }
+.tri-badge{ position:absolute; right:12px; bottom:12px; padding:6px 12px; border-radius:4px; background:rgba(0,0,0,0.65); color:#fff; font-family:var(--font-cjk); font-size:14px; font-weight:700; letter-spacing:0.05em; }
 
 /* ===========================================
    PROOF STRIP (numbers under value cards)
@@ -512,7 +514,7 @@ table.deck-table td.emph{ font-weight:700; color:var(--text-dark); }
         <h2 class="title reveal">像素交給模型，品牌交給程式</h2>
         <div class="triptych video-row reveal">
           <div class="tri-card">
-            <div class="tri-frame"><video src="assets/hero-video.mp4" muted loop playsinline controls></video></div>
+            <div class="tri-frame tri-still"><img src="assets/picture1.png" alt="Path 1 純生成影片畫面"><span class="tri-badge">影片見 P08</span></div>
             <div class="tri-cap"><span class="tag">Path 1 · 純生成</span><h5>文字提示詞直出影片</h5><p>pixelforge 生成角色、舞台與鏡頭。擅長真實人物與光影，但文字與 logo 容易畫壞。</p></div>
           </div>
           <div class="tri-card">
