@@ -495,7 +495,7 @@ table.deck-table td.emph{ font-weight:700; color:var(--text-dark); }
             </ul>
           </div>
           <div class="video-frame">
-            <video src="assets/hero-video.mp4" controls muted loop playsinline></video>
+            <video src="assets/hero-video.mp4" poster="assets/hero-video-poster.jpg" preload="none" controls muted loop playsinline></video>
           </div>
         </div>
       </div>
@@ -514,15 +514,15 @@ table.deck-table td.emph{ font-weight:700; color:var(--text-dark); }
         <h2 class="title reveal">像素交給模型，品牌交給程式</h2>
         <div class="triptych video-row reveal">
           <div class="tri-card">
-            <div class="tri-frame tri-still"><img src="assets/picture1.png" alt="Path 1 純生成影片畫面"><span class="tri-badge">影片見 P08</span></div>
+            <div class="tri-frame tri-still"><img src="assets/hero-video-poster.jpg" alt="Path 1 純生成影片畫面"><span class="tri-badge">影片見 P08</span></div>
             <div class="tri-cap"><span class="tag">Path 1 · 純生成</span><h5>文字提示詞直出影片</h5><p>pixelforge 生成角色、舞台與鏡頭。擅長真實人物與光影，但文字與 logo 容易畫壞。</p></div>
           </div>
           <div class="tri-card">
-            <div class="tri-frame"><video src="assets/path-code.mp4" muted loop playsinline controls></video></div>
+            <div class="tri-frame"><video src="assets/path-code.mp4" poster="assets/path-code-poster.jpg" preload="none" muted loop playsinline controls></video></div>
             <div class="tri-cap"><span class="tag">Path 2 · 純程式</span><h5>X870E Taichi 30 秒廣告</h5><p>主機板、字卡與音效全由 Python 繪製和合成。產品細節與文字精準，可完整重現。</p></div>
           </div>
           <div class="tri-card">
-            <div class="tri-frame"><video src="assets/path-hybrid.mp4" muted loop playsinline controls></video></div>
+            <div class="tri-frame"><video src="assets/path-hybrid.mp4" poster="assets/path-hybrid-poster.jpg" preload="none" muted loop playsinline controls></video></div>
             <div class="tri-cap"><span class="tag">Path 3 · 混合</span><h5>生成鏡頭，程式收尾</h5><p>pixelforge 生成 5 段鏡頭，Claude Code 在本機疊上監控介面、追蹤地圖、字卡並合成配樂。</p></div>
           </div>
         </div>
@@ -693,6 +693,16 @@ class SlidePresentation {
       slide.classList.toggle('visible', i === this.currentSlide);
     });
     this.progressText.textContent = `${this.currentSlide + 1} / ${this.slides.length}`;
+    this.warmVideos(this.currentSlide);
+  }
+
+  // Videos start as preload="none"; buffer the current and next slide's videos on arrival.
+  warmVideos(index) {
+    [index, index + 1].forEach(i => {
+      const slide = this.slides[i];
+      if (!slide) return;
+      slide.querySelectorAll('video[preload="none"]').forEach(v => { v.preload = 'auto'; });
+    });
   }
 }
 
